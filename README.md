@@ -62,7 +62,7 @@
 
 ## 快速开始
 
-- 下载安装 APK（见 [Releases](https://github.com/mikudayoooooooo/HyperSideBar/releases)）；
+- 下载安装 APK（见 [Releases](https://github.com/Xposed-Modules-Repo/io.github.mikudayoooooooo.hypersidebar/releases)）；
 - 在 LSPosed 中启用模块，勾选作用域 **手机管家（com.miui.securitycenter）** 、**系统界面（com.android.systemui）**与 **系统桌面（com.miui.home）**，然后重启这三个应用（或重启手机）即可正常使用；
 - 如需调整扇形面板的展示效果，在 `布局与交互` 栏点击竖屏 / 横屏 / 底角斜滑的预览图案，可自行调节图标大小、内外圈半径、内外圈应用数量；
 - 如需固定展示在扇形界面的应用，可在 `应用` 栏点击 `扇形应用` 自行选择并排序；
