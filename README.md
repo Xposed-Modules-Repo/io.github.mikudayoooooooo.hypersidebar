@@ -1,7 +1,7 @@
 # HyperSideBar
 一个将 HyperOS系统原生侧边栏替换为双层半圆扇形摇杆菜单的模块，提供多种呼出方式，支持展示全部可打开应用、设置快捷方式。
 
-> 目前仅在 **HyperOS 3.300** 上验证通过，其他机型与系统版本不保证可用。
+
 
 
 ## 效果展示
@@ -48,6 +48,8 @@
 
 - 第一位会展示系统自带的活动面板，当前场景没有面板时自动消失、用户项前移；
 - 用于固定展示在快捷栏的快捷应用，可启动 activity / service、qs 磁贴、shortcut 以及 intent 链接；
+- 应用快捷方式的清单：OS2/OS3 由桌面进程代查；OS4 桌面无 Java 层，改由模块以 root 枚举系统
+  `ShortcutService`（该页在 OS4 需要 root）；
 - 最多同时展示六个快捷方式（含系统面板占位）。
 
 ### 展示全部可打开应用
@@ -62,7 +64,7 @@
 
 ## 快速开始
 
-- 下载安装 APK（见 [Releases](https://github.com/Xposed-Modules-Repo/io.github.mikudayoooooooo.hypersidebar/releases)）；
+- 下载安装 APK（见 [Releases](https://github.com/mikudayoooooooo/HyperSideBar/releases)）；
 - 在 LSPosed 中启用模块，勾选作用域 **手机管家（com.miui.securitycenter）** 、**系统界面（com.android.systemui）**与 **系统桌面（com.miui.home）**，然后重启这三个应用（或重启手机）即可正常使用；
 - 如需调整扇形面板的展示效果，在 `布局与交互` 栏点击竖屏 / 横屏 / 底角斜滑的预览图案，可自行调节图标大小、内外圈半径、内外圈应用数量；
 - 如需固定展示在扇形界面的应用，可在 `应用` 栏点击 `扇形应用` 自行选择并排序；
@@ -82,9 +84,10 @@
 - 启用快捷方式可能需要root；
 - **游戏 / 视频工具箱开关必须保持开启**，否则横屏状态下无法唤出；
 - 更新模块版本后，请再次重启上述三个应用（桌面 / 系统界面 / 手机管家），否则部分功能可能不生效；
-- 本项目只在 `HyperOS 3.300` 上测试过，其他机型或系统不保证可用性（`com.miui.securitycenter` 版本为 12.2.8，`com.miui.home` 版本为 6.01.05，`com.android.systemui` 版本为16.03.251211）；
-- 未来可能会云适配HyperOS2以及HyperOS4；
-- LSPosed 框架必须支持 API 101 及以上；
+- 本项目只在 `HyperOS 2`（大致测试）、`HyperOS 3.300` 与 **HyperOS 4** 上实机验证过，其他机型或系统不保证可用性；
+- **HyperOS 4 多数功能的实现都需要依赖 root**，建议为该应用授权 root 以获取更好的体验；
+- `HyperOS 2` 只经过大概的测试，**不确保完全可用**；另有 QS 磁贴在**冻结 / 后台受限**场景的已知降级，详见下方「适配进度」；
+- LSPosed 框架必须支持 API 102 及以上；
 - 扇形应用展示的应用源于系统的 `getFreeformSuggestionList`，因此并不会展示所有应用；
 - 连续失败会触发熔断，hook 将不再主动生效（可在设置页查看通道状态并手动重试，或重启手机）；
 - 本项目非官方模块、与小米无关，使用风险自负。
@@ -97,13 +100,45 @@
 - 包括但不限于 GLM5.3、GLM5.3-flash、GLM5.2、DeepSeek-V4-flash、DeepSeek-V4-pro、MIMO V2.5 pro、Kimi K2.7 Code、Qwen3.8-Max、Qwen3.7-Plus 等各类或强或弱的模型精心熬制的一锅屎山代码，；
 - 可能存在的各类 bug 或者不完善的功能、漏洞；
 - 代码含人量较低。
-  
+ 
+
 ## 基于
 
 - [LSPosed](https://github.com/LSPosed/LSPosed)（libxposed API）
 - [miuix](https://github.com/compose-miuix-ui/miuix)（HyperOS 风格 Compose UI 库）
 - [EzXHelper](https://github.com/KyuubiRan/EzXHelper)
+- [DexKit](https://github.com/LuckyPray/DexKit)（运行时 dex 解析，用于宿主混淆类名的结构化定位；自 `adapt/anchor-resolver` 分支起引入，仅打包 `arm64-v8a`）
   
+## 第三方组件与许可
+
+本项目自身以 [Apache License 2.0](LICENSE) 发布。以下为随 APK 分发的第三方组件及其许可义务：
+
+| 组件 | 版本 | 许可 | 说明 |
+|---|---|---|---|
+| DexKit | `org.luckypray:dexkit:2.3.0` | **Apache-2.0**（除 `Core/`）+ **LGPL-3.0**（`Core/`，即 `libdexkit.so` 内的 C++ 引擎） | 精确源码见 [GitHub tag 2.3.0](https://github.com/LuckyPray/DexKit/tree/2.3.0) 与 Maven 坐标 `org.luckypray:dexkit:2.3.0` |
+| libxposed API / service | 102.x | Apache-2.0 | 编译期依赖（`compileOnly`），不随 APK 分发 |
+| EzXHelper | 3.2.0-preview1 | Apache-2.0 | — |
+| miuix | 0.9.x | Apache-2.0 | — |
+| MiuiBackGestureHook（源码衍生） | — | Apache-2.0 | native 结构校验「底座」`app/src/main/cpp/hsb_elf_view.{h,c}`、`hsb_import_got.{h,c}`、`hsb_a64_decode.{h,c}` 自上游 `miui-home-hyos-native/runtime_profile_resolver.cpp` 逐函数移植（`ElfView`/`AddOverflows`/`Contains`/`ReadInstruction`/`NormalizeDynamicPointer`/`ParseElf`/`BoundedStringEquals`/`FindImportGot`/`ResolveImports`/`Decode*`/`MatchesWords`/`InstructionEquals`）；每个文件头标注来源与许可，边界检查未删减 |
+
+关于 DexKit 的 LGPL-3.0 部分（`libdexkit.so`）：
+
+- 本项目**仅调用、不修改**该库，并以**动态加载**方式使用，因此本项目源码保持 Apache-2.0，无需按 LGPL 开放；
+- 该 `.so` 由模块在运行时加载，优先**直接从模块 APK 内**加载（`<模块APK>!/lib/arm64-v8a/libdexkit.so`，
+  该条目为 STORED 且页对齐，由系统 linker 直接 mmap），必要时回退到释放到宿主应用缓存目录后
+  以绝对路径 `System.load` 加载（文件名形如 `hypersidebar_libdexkit_<模块版本>_arm64-v8a.so`）；
+- **替换此库的方法**：把同 ABI 的其它 `libdexkit.so` 放到宿主应用的缓存目录下并命名为
+  `hypersidebar_libdexkit_override_arm64-v8a.so`（例如 `/data/user/0/<宿主包>/cache/`），
+  模块会**优先加载该文件**。本项目不对它做签名或完整性校验——这正是 LGPL-3.0 §4 要求的"用户可替换"；
+- 完整文本：LGPL-3.0 <https://www.gnu.org/licenses/lgpl-3.0.html>、Apache-2.0 <https://www.apache.org/licenses/LICENSE-2.0>；
+- 若后续版本修改了 DexKit 源码，修改部分将按 LGPL-3.0 单独提供。
+
+### 参考项目（致谢与出处）
+
+| 项目 | 许可 | 参考内容 |
+|---|---|---|
+| [MiuiBackGestureHook](https://github.com/wxxsfxyzm/MiuiBackGestureHook) | Apache-2.0 | HyperOS 4（Rust 桌面）native hook 路线的可行性论证与技术思路：LSPosed native entry 打包方式、`RTLD_NOLOAD` 回放已加载库、`madvise(MADV_DONTNEED)` 守卫模型、per-version launcher profile 机制。截至 native 探针（adapt/hyperos4 5af37b2）未复制其源码行；`NativeAPIEntries` 等 ABI 定义取自 LSPosed 官方 wiki《Native Hook》。**自 spike/os4-native 的 native 结构校验「底座」起，`app/src/main/cpp/hsb_*` 三个文件为其源码衍生（Apache-2.0 允许，逐函数保留来源说明），见上表** |
+
 ## 开源协议
 
 [Apache License 2.0](LICENSE)
